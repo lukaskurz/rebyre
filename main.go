@@ -10,6 +10,44 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+type Clause struct {
+	literals []*Literal
+}
+
+func (c *Clause) ToString() string {
+	text := "( "
+
+	length := len(c.literals)
+	for i, l := range c.literals {
+		if l.negated {
+			text += "!"
+		}
+		text += l.variable
+		if i < length-1 {
+			text += " | "
+		}
+	}
+
+	return text + " )"
+}
+
+type Literal struct {
+	variable string
+	negated  bool
+}
+
+func (l *Literal) Negate() {
+	l.negated = !l.negated
+}
+
+func (l *Literal) Matches(other *Literal) bool {
+	return l.variable == other.variable && l.negated == other.negated
+}
+
+func (l *Literal) Opposes(other *Literal) bool {
+	return l.variable == other.variable && l.negated != other.negated
+}
+
 func main() {
 	app := &cli.App{
 		Name: "rebyre",
@@ -31,7 +69,10 @@ func main() {
 				return err
 			}
 
-			fmt.Println(text)
+			clauses := parseClauses(text)
+			for _, c := range clauses {
+				fmt.Println(c.ToString())
+			}
 
 			return nil
 		},
@@ -41,6 +82,37 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func parseClauses(text string) []*Clause {
+	splitted := strings.Split(text, "&")
+	clauses := make([]*Clause, len(splitted))
+
+	for i, s := range splitted {
+		clauses[i] = &Clause{literals: parseLiterals(s)}
+	}
+
+	return clauses
+}
+
+func parseLiterals(text string) []*Literal {
+	text = strings.ReplaceAll(text, "(", "")
+	text = strings.ReplaceAll(text, ")", "")
+	splitted := strings.Split(text, "|")
+	literals := make([]*Literal, len(splitted))
+
+	for i, s := range splitted {
+		literals[i] = parseLiteral(s)
+	}
+
+	return literals
+}
+
+func parseLiteral(text string) *Literal {
+	if len(text) == 2 {
+		return &Literal{variable: strings.ReplaceAll(text, "!", ""), negated: true}
+	}
+	return &Literal{variable: text, negated: false}
 }
 
 func readTextFromFile(filepath string) (string, error) {
