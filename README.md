@@ -25,3 +25,31 @@ id | name            | id of clause a | id of clause b
 
 
 ```
+
+## Example
+
+```bash
+rebyre on  main via 🐹 v1.13.15 
+➜ rebyre solve example_input.boole
+Starting resolution:
+Found an empty clause !!
+
+Solution #0
+
+(  )┬( x )┬( x | !c )┬( x | !d | !c )┬( x | !d | !a )
+    |     |          |               └( !c | a | !d )
+    |     |          └( x | d | !c )┬( x | d | a )
+    |     |                         └( d | !c | !a )
+    |     └( c | x )┬( c | y )┬( c | !z | y )
+    |               |         └( z )
+    |               └( x | !y )┬( x | !b | !y )
+    |                          └( b )
+    └( !x )┬( !c | !x )┬( !c | !y )┬( !c | !y | !z )
+           |           |           └( z )
+           |           └( y | !x )┬( y | !b | !x )
+           |                      └( b )
+           └( !x | c )┬( !x | !a | c )┬( !x | !a | d )
+                      |               └( !a | !d | c )
+                      └( a | c )┬( !d | a | c )
+                                └( d | c | a )
+```
