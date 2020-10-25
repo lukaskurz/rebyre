@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/urfave/cli/v2"
 )
@@ -65,6 +66,7 @@ func main() {
 
 	app := &cli.App{
 		Name:                 "rebyre",
+		Compiled:             time.Date(2020, time.October, 25, 19, 37, 0, 0, time.UTC),
 		Description:          "You either know what this thing does or you don't. Repo is found at https://github.com/lukaskurz/rebyre",
 		EnableBashCompletion: true,
 		Version:              "4.20.69",
