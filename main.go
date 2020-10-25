@@ -10,20 +10,15 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+var index int
+
 func main() {
 	counter = 0
+	index = 0
 
-	app := &cli.App{
-		Name: "rebyre",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:    "output",
-				Aliases: []string{"o"},
-				Value:   "stdout",
-				Usage:   "output result to file",
-			},
-		},
-		Usage: "Tool to do a refutation by resolution on a proposition in CNF",
+	solveCommand := &cli.Command{
+		Name:  "solve",
+		Usage: "rebyre solve <path/to/file.bool>",
 		Action: func(c *cli.Context) error {
 			if c.NArg() < 1 {
 				return fmt.Errorf("No file input specified")
@@ -33,17 +28,49 @@ func main() {
 				return err
 			}
 
-			clauses := parseClauses(text)
-			for _, c := range clauses {
-				fmt.Println(c.ToString())
+			disjunctions, err := parseDisjunctions(text)
+			if err != nil {
+				return err
 			}
 
-			for !containsEmptyClauses(clauses) {
-				clauses = combineClauses(clauses)
+			// printDisjunctions(disjunctions)
+			fmt.Println("Starting")
+
+			emptyClauses := make([]*Disjunction, 0)
+			for len(emptyClauses) == 0 {
+				combinations := combineDisjunctions(disjunctions)
+				// printCombinations(combinations)
+
+				disjunctions = append(disjunctions, combinations...)
+
+				emptyClauses = getEmptyClauses(disjunctions)
+			}
+
+			fmt.Println("Found an empty clause !!")
+
+			for i, e := range emptyClauses {
+				fmt.Printf("\nSolution #%d\n\n", i)
+				printTree(disjunctions, e, "", true)
 			}
 
 			return nil
 		},
+	}
+
+	app := &cli.App{
+		Name:                 "rebyre",
+		Description:          "You either knnow what this thing does or you don't. Repo is found at https://github.com/lukaskurz/rebyre",
+		EnableBashCompletion: true,
+		Commands: []*cli.Command{
+			solveCommand,
+		},
+		Authors: []*cli.Author{
+			{
+				Name:  "Lukas G. Kurz",
+				Email: "me@lukaskurz.com",
+			},
+		},
+		Usage: "Tool to do a refutation by resolution on a proposition in CNF. Input has to be in CNF i.e. ( a | b | !c ) & ( !a | b)",
 	}
 
 	err := app.Run(os.Args)
@@ -52,38 +79,76 @@ func main() {
 	}
 }
 
-func parseClauses(text string) []*Disjunction {
-	splitted := strings.Split(text, "&")
-	clauses := make([]*Disjunction, len(splitted))
+func printTree(all []*Disjunction, d *Disjunction, indent string, left bool) {
+	text := d.ToString()
 
-	for i, s := range splitted {
-		clauses[i] = &Disjunction{
-			id:       getNextID(),
-			literals: parseLiterals(s),
+	if len(indent) > 0 {
+		if left {
+			fmt.Print("┬")
+		} else {
+			fmt.Printf("%s└", indent)
+		}
+	}
+	fmt.Print(text)
+
+	nextIndent := indent
+	for i := 0; i < len(text); i++ {
+		nextIndent += " "
+	}
+
+	if !left {
+		nextIndent += " "
+	}
+
+	if d.SourceA != 0 {
+		next := getDisjunction(d.SourceA, all)
+		printTree(all, next, nextIndent+"|", true)
+	}
+	if d.SourceB != 0 {
+		next := getDisjunction(d.SourceB, all)
+		printTree(all, next, nextIndent, false)
+	}
+	if d.SourceA == 0 && d.SourceB == 0 {
+		fmt.Println()
+	}
+
+}
+
+func getDisjunction(id int, all []*Disjunction) *Disjunction {
+	for _, e := range all {
+		if e.id == id {
+			return e
 		}
 	}
 
-	return clauses
+	return nil
 }
 
-func parseLiterals(text string) []*Literal {
-	text = strings.ReplaceAll(text, "(", "")
-	text = strings.ReplaceAll(text, ")", "")
-	splitted := strings.Split(text, "|")
-	literals := make([]*Literal, len(splitted))
+func printDisjunctions(disjunctions []*Disjunction) {
+	for _, d := range disjunctions {
+		fmt.Println(fmt.Sprintf("%d %s", d.id, d.ToString()))
+	}
+}
+
+func printCombinations(combinations []*Disjunction) {
+	for _, c := range combinations {
+		fmt.Println(fmt.Sprintf("%d %s %d %d", c.id, c.ToString(), c.SourceA, c.SourceB))
+	}
+}
+
+func parseDisjunctions(text string) ([]*Disjunction, error) {
+	splitted := strings.Split(text, "&")
+	disjunctions := make([]*Disjunction, len(splitted))
 
 	for i, s := range splitted {
-		literals[i] = parseLiteral(s)
+		var err error
+		disjunctions[i], err = DisjunctionFromString(s)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return literals
-}
-
-func parseLiteral(text string) *Literal {
-	if len(text) == 2 {
-		return &Literal{variable: strings.ReplaceAll(text, "!", ""), negated: true}
-	}
-	return &Literal{variable: text, negated: false}
+	return disjunctions, nil
 }
 
 func readTextFromFile(filepath string) (string, error) {
@@ -99,29 +164,36 @@ func readTextFromFile(filepath string) (string, error) {
 	return text, nil
 }
 
-func containsEmptyClauses(clauses []*Disjunction) bool {
-	for _, c := range clauses {
-		if c.IsEmpty() {
-			return true
+func getEmptyClauses(disjunctions []*Disjunction) []*Disjunction {
+	clauses := make([]*Disjunction, 0)
+
+	for _, d := range disjunctions {
+		if d.IsEmpty() {
+			clauses = append(clauses, d)
 		}
 	}
-	return false
+	return clauses
 }
 
-func combineClauses(clauses []*Disjunction) []*Disjunction {
-	for _, c1 := range clauses {
-		for _, c2 := range clauses {
-			if c1.CompatibleWith(c2) {
-				derived := c1.Derive(c2)
-				if !isClauseContained(clauses, derived) {
-					derived.id = getNextID()
-					clauses = append(clauses, derived)
+func combineDisjunctions(disjunctions []*Disjunction) []*Disjunction {
+	length := len(disjunctions)
+
+	combinations := make([]*Disjunction, 0)
+
+	for _, base := range disjunctions[index:] {
+		for _, target := range disjunctions {
+			if base.CompatibleWith(target) {
+				derived := base.Derive(target)
+				if !isClauseContained(disjunctions, derived) && !isClauseContained(combinations, derived) {
+					combinations = append(combinations, derived)
 				}
 			}
 		}
 	}
 
-	return clauses
+	index = length
+
+	return combinations
 }
 
 func isClauseContained(clauses []*Disjunction, clause *Disjunction) bool {

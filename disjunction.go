@@ -11,6 +11,8 @@ var counter int
 type Disjunction struct {
 	id       int
 	literals []*Literal
+	SourceA  int
+	SourceB  int
 }
 
 // Length outputs the length or the "order" of the disjunction
@@ -63,27 +65,44 @@ func (d *Disjunction) CompatibleWith(other *Disjunction) bool {
 	}
 
 	minLength := int(math.Min(float64(d.Length()), float64(other.Length())))
-	return opposed == 1 && matches >= minLength-1
+	return opposed == 1 && matches >= minLength-2
 }
 
 // Derive derives a disjunction by applying the absorption rule
 func (d *Disjunction) Derive(other *Disjunction) *Disjunction {
-	derivation := &Disjunction{id: getNextID(), literals: make([]*Literal, 0)}
+	var base *Disjunction
+	var target *Disjunction
 
-	opposes := false
-	for _, dl := range d.literals {
-		for _, ol := range other.literals {
+	if d.Length() >= other.Length() {
+		base = d
+		target = other
+	} else {
+		base = other
+		target = d
+	}
+
+	derivation := &Disjunction{id: getNextID(), literals: make([]*Literal, 0), SourceA: base.id, SourceB: target.id}
+
+	var opposer *Literal
+	for _, dl := range base.literals {
+		for _, ol := range target.literals {
 			if dl.Opposes(ol) {
-				opposes = true
+				opposer = dl
 				break
 			}
 		}
-		if !opposes {
-			derivation.literals = append(derivation.literals, dl)
-		} else {
-			opposes = false
+		if opposer != nil {
+			break
 		}
 	}
+
+	for _, l := range append(base.literals, target.literals...) {
+		if !(l.Equals(opposer) || l.Opposes(opposer)) {
+			derivation.literals = append(derivation.literals, l)
+		}
+	}
+
+	derivation.Sanitize()
 
 	return derivation
 }
