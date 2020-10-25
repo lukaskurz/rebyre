@@ -4,105 +4,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"math"
 	"os"
 	"strings"
 
 	"github.com/urfave/cli/v2"
 )
-
-var counter int
-
-type Clause struct {
-	id       int
-	literals []*Literal
-}
-
-func (c *Clause) Length() int {
-	return len(c.literals)
-}
-
-func (c *Clause) IsEmpty() bool {
-	return len(c.literals) == 0
-}
-
-func (c *Clause) ToString() string {
-	text := "( "
-
-	length := len(c.literals)
-	for i, l := range c.literals {
-		if l.negated {
-			text += "!"
-		}
-		text += l.variable
-		if i < length-1 {
-			text += " | "
-		}
-	}
-
-	return text + " )"
-}
-
-func (c *Clause) CompatibleWith(other *Clause) bool {
-	matches := 0
-	opposed := 0
-
-	for _, l1 := range c.literals {
-		for _, l2 := range other.literals {
-			if l1.Equals(l2) {
-				matches++
-				break
-			}
-			if l1.Opposes(l2) {
-				opposed++
-				break
-			}
-		}
-	}
-
-	minLength := int(math.Min(float64(c.Length()), float64(other.Length())))
-	return opposed == 1 && matches >= minLength-1
-}
-
-func (c *Clause) Derive(other *Clause) *Clause {
-	// TODO:
-	return &Clause{literals: make([]*Literal, 0)}
-}
-
-func (c *Clause) Equals(other *Clause) bool {
-	if c.Length() != other.Length() {
-		return false
-	}
-	found := false
-	for _, l1 := range c.literals {
-		found = false
-		for _, l2 := range other.literals {
-			if l1.Equals(l2) {
-				found = true
-				break
-			}
-		}
-
-		// matching literal not found
-		if !found {
-			return false
-		}
-	}
-	return found
-}
-
-type Literal struct {
-	variable string
-	negated  bool
-}
-
-func (l *Literal) Equals(other *Literal) bool {
-	return l.variable == other.variable && l.negated == other.negated
-}
-
-func (l *Literal) Opposes(other *Literal) bool {
-	return l.variable == other.variable && l.negated != other.negated
-}
 
 func main() {
 	counter = 0
@@ -146,13 +52,13 @@ func main() {
 	}
 }
 
-func parseClauses(text string) []*Clause {
+func parseClauses(text string) []*Disjunction {
 	splitted := strings.Split(text, "&")
-	clauses := make([]*Clause, len(splitted))
+	clauses := make([]*Disjunction, len(splitted))
 
 	for i, s := range splitted {
-		clauses[i] = &Clause{
-			id:       getNextId(),
+		clauses[i] = &Disjunction{
+			id:       getNextID(),
 			literals: parseLiterals(s),
 		}
 	}
@@ -193,12 +99,7 @@ func readTextFromFile(filepath string) (string, error) {
 	return text, nil
 }
 
-func getNextId() int {
-	counter++
-	return counter
-}
-
-func containsEmptyClauses(clauses []*Clause) bool {
+func containsEmptyClauses(clauses []*Disjunction) bool {
 	for _, c := range clauses {
 		if c.IsEmpty() {
 			return true
@@ -207,13 +108,13 @@ func containsEmptyClauses(clauses []*Clause) bool {
 	return false
 }
 
-func combineClauses(clauses []*Clause) []*Clause {
+func combineClauses(clauses []*Disjunction) []*Disjunction {
 	for _, c1 := range clauses {
 		for _, c2 := range clauses {
 			if c1.CompatibleWith(c2) {
 				derived := c1.Derive(c2)
 				if !isClauseContained(clauses, derived) {
-					derived.id = getNextId()
+					derived.id = getNextID()
 					clauses = append(clauses, derived)
 				}
 			}
@@ -223,7 +124,7 @@ func combineClauses(clauses []*Clause) []*Clause {
 	return clauses
 }
 
-func isClauseContained(clauses []*Clause, clause *Clause) bool {
+func isClauseContained(clauses []*Disjunction, clause *Disjunction) bool {
 	for _, c := range clauses {
 		if c.Equals(clause) {
 			return true
