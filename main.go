@@ -17,9 +17,11 @@ func main() {
 	index = 0
 
 	solveCommand := &cli.Command{
-		Name:  "solve",
-		Usage: "rebyre solve <path/to/file.bool>",
+		Name:    "solve",
+		Aliases: []string{"s"},
+		Usage:   "rebyre solve <path/to/file.bool>",
 		Action: func(c *cli.Context) error {
+			verbose := c.Bool("verbose")
 			if c.NArg() < 1 {
 				return fmt.Errorf("No file input specified")
 			}
@@ -33,13 +35,17 @@ func main() {
 				return err
 			}
 
-			// printDisjunctions(disjunctions)
-			fmt.Println("Starting")
+			if verbose {
+				printDisjunctions(disjunctions)
+			}
+			fmt.Println("Starting resolution:")
 
 			emptyClauses := make([]*Disjunction, 0)
 			for len(emptyClauses) == 0 {
 				combinations := combineDisjunctions(disjunctions)
-				// printCombinations(combinations)
+				if verbose {
+					printCombinations(combinations)
+				}
 
 				disjunctions = append(disjunctions, combinations...)
 
@@ -59,10 +65,14 @@ func main() {
 
 	app := &cli.App{
 		Name:                 "rebyre",
-		Description:          "You either knnow what this thing does or you don't. Repo is found at https://github.com/lukaskurz/rebyre",
+		Description:          "You either know what this thing does or you don't. Repo is found at https://github.com/lukaskurz/rebyre",
 		EnableBashCompletion: true,
+		Version:              "4.20.69",
 		Commands: []*cli.Command{
 			solveCommand,
+		},
+		Flags: []cli.Flag{
+			&cli.BoolFlag{Name: "verbose"},
 		},
 		Authors: []*cli.Author{
 			{
