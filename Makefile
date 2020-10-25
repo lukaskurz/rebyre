@@ -13,8 +13,8 @@ build-linux-arm64:
 	@env GOOS=linux GOARCH=arm64 go build -o=out/rebyre_linux-arm64 .
 	
 build-windows-386:
-	@env GOOS=linux GOARCH=arm64 go build -o=out/rebyre_windows-386 .
+	@env GOOS=linux GOARCH=arm64 go build -o=out/rebyre_windows-386.exe .
 	
 build-windows-amd64:
-	@env GOOS=linux GOARCH=arm64 go build -o=out/rebyre_windows-amd64 .
+	@env GOOS=linux GOARCH=arm64 go build -o=out/rebyre_windows-amd64.exe .
 	
