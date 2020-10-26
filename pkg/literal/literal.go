@@ -38,8 +38,8 @@ func (l *Literal) Opposes(other *Literal) bool {
 	return l.variable == other.variable && l.negated != other.negated
 }
 
-// ToString prints the literal as string
-func (l *Literal) ToString() string {
+// String prints the literal as string
+func (l *Literal) String() string {
 	text := ""
 	if l.negated {
 		text += "!"

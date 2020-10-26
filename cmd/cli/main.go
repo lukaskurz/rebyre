@@ -93,7 +93,7 @@ func main() {
 }
 
 func printTree(all []*disjunction.Disjunction, d *disjunction.Disjunction, indent string, left bool) {
-	text := d.ToString()
+	text := d.String()
 
 	if len(indent) > 0 {
 		if left {
@@ -139,13 +139,13 @@ func getDisjunction(id int, all []*disjunction.Disjunction) *disjunction.Disjunc
 
 func printDisjunctions(disjunctions []*disjunction.Disjunction) {
 	for _, d := range disjunctions {
-		fmt.Println(fmt.Sprintf("%d %s", d.ID(), d.ToString()))
+		fmt.Println(fmt.Sprintf("%d %s", d.ID(), d.String()))
 	}
 }
 
 func printCombinations(combinations []*disjunction.Disjunction) {
 	for _, c := range combinations {
-		fmt.Println(fmt.Sprintf("%d %s %d %d", c.ID(), c.ToString(), c.SourceA, c.SourceB))
+		fmt.Println(fmt.Sprintf("%d %s %d %d", c.ID(), c.String(), c.SourceA, c.SourceB))
 	}
 }
 

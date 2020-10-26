@@ -168,10 +168,10 @@ func TestDisjunctionToString(t *testing.T) {
 	disjunctions := setup()
 
 	toStrings := []string{
-		disjunctions[0].ToString(),
-		disjunctions[1].ToString(),
-		disjunctions[2].ToString(),
-		disjunctions[3].ToString(),
+		disjunctions[0].String(),
+		disjunctions[1].String(),
+		disjunctions[2].String(),
+		disjunctions[3].String(),
 	}
 
 	results := []string{
