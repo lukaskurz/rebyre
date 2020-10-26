@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -13,10 +14,14 @@ import (
 	"github.com/lukaskurz/rebyre/pkg/disjunction"
 )
 
-var index int
+var (
+	index int
+	out   io.StringWriter
+)
 
 func main() {
 	index = 0
+	out = os.Stdout
 
 	solveCommand := &cli.Command{
 		Name:    "solve",
@@ -57,7 +62,7 @@ func main() {
 			fmt.Println("Found an empty clause !!")
 
 			for i, e := range emptyClauses {
-				fmt.Printf("\nSolution #%d\n\n", i)
+				out.WriteString(fmt.Sprintf("\nSolution #%d\n\n", i))
 				printTree(disjunctions, e, "", true)
 			}
 
@@ -97,12 +102,12 @@ func printTree(all []*disjunction.Disjunction, d *disjunction.Disjunction, inden
 
 	if len(indent) > 0 {
 		if left {
-			fmt.Print("┬")
+			out.WriteString("T")
 		} else {
-			fmt.Printf("%s└", indent)
+			out.WriteString(fmt.Sprintf("%s└", indent))
 		}
 	}
-	fmt.Print(text)
+	out.WriteString(text)
 
 	nextIndent := indent
 	for i := 0; i < len(text); i++ {
@@ -122,7 +127,7 @@ func printTree(all []*disjunction.Disjunction, d *disjunction.Disjunction, inden
 		printTree(all, next, nextIndent, false)
 	}
 	if d.SourceA == 0 && d.SourceB == 0 {
-		fmt.Println()
+		out.WriteString("\n")
 	}
 
 }
@@ -139,13 +144,13 @@ func getDisjunction(id int, all []*disjunction.Disjunction) *disjunction.Disjunc
 
 func printDisjunctions(disjunctions []*disjunction.Disjunction) {
 	for _, d := range disjunctions {
-		fmt.Println(fmt.Sprintf("%d %s", d.ID(), d.String()))
+		out.WriteString(fmt.Sprintf("%d %s\n", d.ID(), d.String()))
 	}
 }
 
 func printCombinations(combinations []*disjunction.Disjunction) {
 	for _, c := range combinations {
-		fmt.Println(fmt.Sprintf("%d %s %d %d", c.ID(), c.String(), c.SourceA, c.SourceB))
+		out.WriteString(fmt.Sprintf("%d %s %d %d\n", c.ID(), c.String(), c.SourceA, c.SourceB))
 	}
 }
 
