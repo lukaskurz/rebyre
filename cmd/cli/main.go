@@ -9,12 +9,13 @@ import (
 	"time"
 
 	"github.com/urfave/cli/v2"
+
+	"github.com/lukaskurz/rebyre/pkg/disjunction"
 )
 
 var index int
 
 func main() {
-	counter = 0
 	index = 0
 
 	solveCommand := &cli.Command{
@@ -41,7 +42,7 @@ func main() {
 			}
 			fmt.Println("Starting resolution:")
 
-			emptyClauses := make([]*Disjunction, 0)
+			emptyClauses := make([]*disjunction.Disjunction, 0)
 			for len(emptyClauses) == 0 {
 				combinations := combineDisjunctions(disjunctions)
 				if verbose {
@@ -91,7 +92,7 @@ func main() {
 	}
 }
 
-func printTree(all []*Disjunction, d *Disjunction, indent string, left bool) {
+func printTree(all []*disjunction.Disjunction, d *disjunction.Disjunction, indent string, left bool) {
 	text := d.ToString()
 
 	if len(indent) > 0 {
@@ -126,9 +127,9 @@ func printTree(all []*Disjunction, d *Disjunction, indent string, left bool) {
 
 }
 
-func getDisjunction(id int, all []*Disjunction) *Disjunction {
+func getDisjunction(id int, all []*disjunction.Disjunction) *disjunction.Disjunction {
 	for _, e := range all {
-		if e.id == id {
+		if e.ID() == id {
 			return e
 		}
 	}
@@ -136,25 +137,25 @@ func getDisjunction(id int, all []*Disjunction) *Disjunction {
 	return nil
 }
 
-func printDisjunctions(disjunctions []*Disjunction) {
+func printDisjunctions(disjunctions []*disjunction.Disjunction) {
 	for _, d := range disjunctions {
-		fmt.Println(fmt.Sprintf("%d %s", d.id, d.ToString()))
+		fmt.Println(fmt.Sprintf("%d %s", d.ID(), d.ToString()))
 	}
 }
 
-func printCombinations(combinations []*Disjunction) {
+func printCombinations(combinations []*disjunction.Disjunction) {
 	for _, c := range combinations {
-		fmt.Println(fmt.Sprintf("%d %s %d %d", c.id, c.ToString(), c.SourceA, c.SourceB))
+		fmt.Println(fmt.Sprintf("%d %s %d %d", c.ID(), c.ToString(), c.SourceA, c.SourceB))
 	}
 }
 
-func parseDisjunctions(text string) ([]*Disjunction, error) {
+func parseDisjunctions(text string) ([]*disjunction.Disjunction, error) {
 	splitted := strings.Split(text, "&")
-	disjunctions := make([]*Disjunction, len(splitted))
+	disjunctions := make([]*disjunction.Disjunction, len(splitted))
 
 	for i, s := range splitted {
 		var err error
-		disjunctions[i], err = DisjunctionFromString(s)
+		disjunctions[i], err = disjunction.DisjunctionFromString(s)
 		if err != nil {
 			return nil, err
 		}
@@ -176,8 +177,8 @@ func readTextFromFile(filepath string) (string, error) {
 	return text, nil
 }
 
-func getEmptyClauses(disjunctions []*Disjunction) []*Disjunction {
-	clauses := make([]*Disjunction, 0)
+func getEmptyClauses(disjunctions []*disjunction.Disjunction) []*disjunction.Disjunction {
+	clauses := make([]*disjunction.Disjunction, 0)
 
 	for _, d := range disjunctions {
 		if d.IsEmpty() {
@@ -187,10 +188,10 @@ func getEmptyClauses(disjunctions []*Disjunction) []*Disjunction {
 	return clauses
 }
 
-func combineDisjunctions(disjunctions []*Disjunction) []*Disjunction {
+func combineDisjunctions(disjunctions []*disjunction.Disjunction) []*disjunction.Disjunction {
 	length := len(disjunctions)
 
-	combinations := make([]*Disjunction, 0)
+	combinations := make([]*disjunction.Disjunction, 0)
 
 	for _, base := range disjunctions[index:] {
 		for _, target := range disjunctions {
@@ -208,7 +209,7 @@ func combineDisjunctions(disjunctions []*Disjunction) []*Disjunction {
 	return combinations
 }
 
-func isClauseContained(clauses []*Disjunction, clause *Disjunction) bool {
+func isClauseContained(clauses []*disjunction.Disjunction, clause *disjunction.Disjunction) bool {
 	for _, c := range clauses {
 		if c.Equals(clause) {
 			return true

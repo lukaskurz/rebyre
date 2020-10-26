@@ -1,67 +1,69 @@
-package main
+package disjunction
 
 import (
 	"testing"
+
+	"github.com/lukaskurz/rebyre/pkg/literal"
 )
 
 func setup() []*Disjunction {
-	a := &Literal{variable: "a", negated: false}
-	notA := &Literal{variable: "a", negated: true}
-	b := &Literal{variable: "b", negated: false}
-	notB := &Literal{variable: "b", negated: true}
-	c := &Literal{variable: "c", negated: false}
-	notC := &Literal{variable: "c", negated: true}
+	a := literal.New("a", false)
+	notA := literal.New("a", true)
+	b := literal.New("b", false)
+	notB := literal.New("b", true)
+	c := literal.New("c", false)
+	notC := literal.New("c", true)
 
 	disjunctions := []*Disjunction{
-		{id: 0, literals: []*Literal{
+		{id: 0, literals: []*literal.Literal{
 			a,
 			notB,
 			c,
 		}},
-		{id: 1, literals: []*Literal{
+		{id: 1, literals: []*literal.Literal{
 			c,
 		}},
-		{id: 2, literals: []*Literal{
+		{id: 2, literals: []*literal.Literal{
 			notA,
 			notC,
 			b,
 		}},
-		{id: 3, literals: []*Literal{}},
+		{id: 3, literals: []*literal.Literal{}},
 	}
 
 	return disjunctions
 }
 
 func setup1() []*Disjunction {
-	a := &Literal{variable: "a", negated: false}
-	notA := &Literal{variable: "a", negated: true}
-	b := &Literal{variable: "b", negated: false}
-	notB := &Literal{variable: "b", negated: true}
-	c := &Literal{variable: "c", negated: false}
-	notC := &Literal{variable: "c", negated: true}
+	a := literal.New("a", false)
+	notA := literal.New("a", true)
+	b := literal.New("b", false)
+	notB := literal.New("b", true)
+	c := literal.New("c", false)
+	notC := literal.New("c", true)
 
 	disjunctions := []*Disjunction{
-		{id: 0, literals: []*Literal{
+		{id: 0, literals: []*literal.Literal{
 			a,
 			notB,
 			c,
 		}},
-		{id: 1, literals: []*Literal{
+		{id: 1, literals: []*literal.Literal{
 			a,
 			b,
 			c,
 		}},
-		{id: 2, literals: []*Literal{
+		{id: 2, literals: []*literal.Literal{
 			notA,
 			notB,
 			c,
 		}},
-		{id: 3, literals: []*Literal{
+		{id: 3, literals: []*literal.Literal{
 			a,
 			b,
 			notC,
 		}},
-		{id: 4, literals: []*Literal{
+		{id: 4, literals: []*literal.Literal{
 			notA,
 			b,
 			c,
@@ -72,42 +74,42 @@ func setup1() []*Disjunction {
 }
 
 func setup2() (sources []*Disjunction, derivations []*Disjunction) {
-	a := &Literal{variable: "a", negated: false}
-	notA := &Literal{variable: "a", negated: true}
-	b := &Literal{variable: "b", negated: false}
-	notB := &Literal{variable: "b", negated: true}
-	c := &Literal{variable: "c", negated: false}
+	a := literal.New("a", false)
+	notA := literal.New("a", true)
+	b := literal.New("b", false)
+	notB := literal.New("b", true)
+	c := literal.New("c", false)
 
 	sources = []*Disjunction{
-		{id: 0, literals: []*Literal{
+		{id: 0, literals: []*literal.Literal{
 			a,
 			notB,
 			c,
 		}},
-		{id: 1, literals: []*Literal{
+		{id: 1, literals: []*literal.Literal{
 			a,
 			b,
 			c,
 		}},
-		{id: 2, literals: []*Literal{
+		{id: 2, literals: []*literal.Literal{
 			notA,
 			notB,
 			c,
 		}},
-		{id: 3, literals: []*Literal{
+		{id: 3, literals: []*literal.Literal{
 			a,
 			b,
 		}},
-		{id: 4, literals: []*Literal{
+		{id: 4, literals: []*literal.Literal{
 			notA,
 			b,
 		}},
 	}
 
 	derivations = []*Disjunction{
-		{literals: []*Literal{a, c}},
-		{literals: []*Literal{notB, c}},
-		{literals: []*Literal{b}},
+		{literals: []*literal.Literal{a, c}},
+		{literals: []*literal.Literal{notB, c}},
+		{literals: []*literal.Literal{b}},
 	}
 
 	return sources, derivations
@@ -300,7 +302,7 @@ func TestDisjunctionEquals(t *testing.T) {
 }
 
 func TestGetNextID(t *testing.T) {
-	counter = 0
+	idCounter = 0
 	id1 := getNextID()
 	id2 := getNextID()
 	if id1 != 1 {
