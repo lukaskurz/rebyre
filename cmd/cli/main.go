@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -21,12 +22,21 @@ var (
 
 func main() {
 	index = 0
-	out = os.Stdout
 
 	solveCommand := &cli.Command{
 		Name:    "solve",
 		Aliases: []string{"s"},
 		Usage:   "rebyre solve <path/to/file.bool>",
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:      "output",
+				Aliases:   []string{"o"},
+				Usage:     "output sets where solutions are streamed. keep it empty for STD (terminal output) or provide a file path",
+				Required:  false,
+				Hidden:    false,
+				TakesFile: true,
+			},
+		},
 		Action: func(c *cli.Context) error {
 			verbose := c.Bool("verbose")
 			if c.NArg() < 1 {
@@ -40,6 +50,26 @@ func main() {
 			disjunctions, err := parseDisjunctions(text)
 			if err != nil {
 				return err
+			}
+
+			oFlag := c.String("output")
+			if len(strings.TrimSpace(oFlag)) == 0 {
+				out = os.Stdout
+			} else {
+				abs, err := filepath.Abs(oFlag)
+				if err != nil {
+					return err
+				}
+
+				f, err := os.Create(abs)
+				if err != nil {
+					return err
+				}
+				out = f
+				defer func() {
+					err = f.Close()
+					fmt.Println(err)
+				}()
 			}
 
 			if verbose {
@@ -84,7 +114,7 @@ func main() {
 		},
 		Authors: []*cli.Author{
 			{
-				Name:  "Lukas G. Kurz",
+				Name:  "PhD Lukas G. Kurz",
 				Email: "me@lukaskurz.com",
 			},
 		},
