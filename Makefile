@@ -1,4 +1,4 @@
-build: build-linux-386 build-linux-amd64 build-linux-arm build-linux-arm64 build-windows-386 build-windows-amd64
+build: build-linux-386 build-linux-amd64 build-linux-arm build-linux-arm64 build-windows-386 build-windows-amd64 build-darwin-386 build-darwin-amd64
 
 build-linux-386:
 	@env GOOS=linux GOARCH=386 go build -o=out/rebyre_linux-386 ./cmd/cli/
@@ -23,9 +23,3 @@ build-darwin-386:
 
 build-darwin-amd64:
 	@env GOOS=darwin GOARCH=amd64 go build -o=out/rebyre_darwin-amd64.exe ./cmd/cli/
-
-build-darwin-arm:
-	@env GOOS=darwin GOARCH=arm go build -o=out/rebyre_darwin-arm.exe ./cmd/cli/
-
-build-darwin-arm64:
-	@env GOOS=darwin GOARCH=arm64 go build -o=out/rebyre_darwin-arm64.exe ./cmd/cli/
