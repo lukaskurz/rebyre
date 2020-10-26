@@ -30,10 +30,10 @@ func (d *Disjunction) IsEmpty() bool {
 	return len(d.literals) == 0
 }
 
-// ToString stringifies the disjunction.
+// String stringifies the disjunction.
 //
 // Example: "(!a | b | c)"
-func (d *Disjunction) ToString() string {
+func (d *Disjunction) String() string {
 	text := "( "
 
 	length := len(d.literals)

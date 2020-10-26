@@ -121,10 +121,10 @@ func TestLiteralToString(t *testing.T) {
 	}
 
 	toString := []string{
-		a.ToString(),
-		aNeg.ToString(),
-		b.ToString(),
-		bNeg.ToString(),
+		a.String(),
+		aNeg.String(),
+		b.String(),
+		bNeg.String(),
 	}
 
 	expected := []string{
