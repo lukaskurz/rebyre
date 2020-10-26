@@ -1,18 +1,23 @@
-package main
+package disjunction
 
 import (
 	"math"
 	"regexp"
-)
 
-var counter int
+	"github.com/lukaskurz/rebyre/pkg/literal"
+)
 
 // Disjunction to contain disjunction of literals in SAT
 type Disjunction struct {
 	id       int
-	literals []*Literal
+	literals []*literal.Literal
 	SourceA  int
 	SourceB  int
+}
+
+// ID returns the id of this disjunction
+func (d *Disjunction) ID() int {
+	return d.id
 }
 
 // Length outputs the length or the "order" of the disjunction
@@ -33,10 +38,10 @@ func (d *Disjunction) ToString() string {
 
 	length := len(d.literals)
 	for i, l := range d.literals {
-		if l.negated {
+		if l.Negated() {
 			text += "!"
 		}
-		text += l.variable
+		text += l.Variable()
 		if i < length-1 {
 			text += " | "
 		}
@@ -81,9 +86,9 @@ func (d *Disjunction) Derive(other *Disjunction) *Disjunction {
 		target = d
 	}
 
-	derivation := &Disjunction{id: getNextID(), literals: make([]*Literal, 0), SourceA: base.id, SourceB: target.id}
+	derivation := &Disjunction{id: getNextID(), literals: make([]*literal.Literal, 0), SourceA: base.id, SourceB: target.id}
 
-	var opposer *Literal
+	var opposer *literal.Literal
 	for _, dl := range base.literals {
 		for _, ol := range target.literals {
 			if dl.Opposes(ol) {
@@ -161,11 +166,6 @@ func (d *Disjunction) Equals(other *Disjunction) bool {
 	return found
 }
 
-func getNextID() int {
-	counter++
-	return counter
-}
-
 // DisjunctionFromString parses a disjunction and the enclosed literals from a string
 // Disjunction has to be written in this way:
 //
@@ -177,15 +177,15 @@ func DisjunctionFromString(text string) (*Disjunction, error) {
 	}
 
 	text = r.ReplaceAllString(text, "")
-	rLit, err := regexp.Compile(LiteralMatchExp)
+	rLit, err := regexp.Compile(literal.LiteralMatchExp)
 	if err != nil {
 		return nil, err
 	}
 
 	matches := rLit.FindAllString(text, -1)
-	literals := make([]*Literal, len(matches))
+	literals := make([]*literal.Literal, len(matches))
 	for i, m := range matches {
-		literals[i], err = LiteralFromString(m)
+		literals[i], err = literal.LiteralFromString(m)
 		if err != nil {
 			return nil, err
 		}

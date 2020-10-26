@@ -1,4 +1,4 @@
-package main
+package literal
 
 import (
 	"fmt"
@@ -16,6 +16,16 @@ const LiteralParseExp = "([!]*)([a-zA-Z]+)"
 type Literal struct {
 	variable string
 	negated  bool
+}
+
+// Variable returns the internal variable field of this object
+func (l *Literal) Variable() string {
+	return l.variable
+}
+
+// Negated returns the internal negated field of this object
+func (l *Literal) Negated() bool {
+	return l.negated
 }
 
 // Equals checks if another literal is equal
@@ -68,4 +78,12 @@ func LiteralFromString(text string) (*Literal, error) {
 	lit.variable = sub[2]
 
 	return lit, nil
+}
+
+// New initializes a new Literal object using the provided values
+func New(variable string, negated bool) *Literal {
+	return &Literal{
+		variable: variable,
+		negated:  negated,
+	}
 }
